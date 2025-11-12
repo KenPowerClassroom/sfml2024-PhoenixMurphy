@@ -1,18 +1,18 @@
-#include <SFML/Graphics.hpp>
+ #include <SFML/Graphics.hpp>
 #include <time.h>
 using namespace sf;
 
-const int M = 20;
-const int N = 10;
+const int M = 20; // the height of the board (colum)
+const int N = 10; // the width of the board (row)
 
-int field[M][N] = {0};
+int field[M][N] = {0}; //the amount of boards there is
 
 struct Point
-{int x,y;} a[4], b[4];
+{int x,y;} a[4], b[4]; //co ordinates of the shapes
 
-int figures[7][4] =
+int figures[7][4] = // matrix that controls the shapes
 {
-    1,3,5,7, // I
+    1,3,5,7, // I 
     2,4,5,7, // Z
     3,5,4,6, // S
     3,5,4,7, // T
@@ -21,7 +21,7 @@ int figures[7][4] =
     2,3,4,5, // O
 };
 
-bool check()
+bool check() // collision detection
 {
    for (int i=0;i<4;i++)
       if (a[i].x<0 || a[i].x>=N || a[i].y>=M) return 0;
@@ -63,11 +63,11 @@ int tetris()
 
             if (e.type == Event::KeyPressed)
               if (e.key.code==Keyboard::Up) rotate=true;
-              else if (e.key.code==Keyboard::Left) dx=-1;
-              else if (e.key.code==Keyboard::Right) dx=1;
+              else if (e.key.code==Keyboard::Left) dx=-1; //moves it right
+              else if (e.key.code==Keyboard::Right) dx=1; //moves it left
         }
 
-    if (Keyboard::isKeyPressed(Keyboard::Down)) delay=0.05;
+    if (Keyboard::isKeyPressed(Keyboard::Down)) delay=0.05; //makes the shape go faster
 
     //// <- Move -> ///
     for (int i=0;i<4;i++)  { b[i]=a[i]; a[i].x+=dx; }
@@ -84,7 +84,7 @@ int tetris()
             a[i].x = p.x - x;
             a[i].y = p.y + y;
            }
-           if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
+           if (!check()) for (int i=0;i<4;i++) a[i]=b[i]; 
       }
 
     ///////Tick//////
@@ -96,8 +96,8 @@ int tetris()
         {
          for (int i=0;i<4;i++) field[b[i].y][b[i].x]=colorNum;
 
-         colorNum=1+rand()%7;
-         int n=rand()%7;
+         colorNum=1+rand()%7; // gets a random colour for the shape
+         int n=rand()%7; // randomises the different shapes that appear 
          for (int i=0;i<4;i++)
            {
             a[i].x = figures[n][i] % 2;
@@ -127,12 +127,12 @@ int tetris()
     window.clear(Color::White);    
     window.draw(background);
           
-    for (int i=0;i<M;i++)
-     for (int j=0;j<N;j++)
+    for (int i=0;i<M;i++) //when the block isn't at the bottom  
+     for (int j=0;j<N;j++) //when the block isn't at the side
        {
          if (field[i][j]==0) continue;
          s.setTextureRect(IntRect(field[i][j]*18,0,18,18));
-         s.setPosition(j*18,i*18);
+         s.setPosition(j*18,i*18); 
          s.move(28,31); //offset
          window.draw(s);
        }
