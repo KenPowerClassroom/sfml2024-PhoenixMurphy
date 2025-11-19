@@ -11,6 +11,16 @@ int field[BOARD_HEIGHT][BOARD_WIDTH] = {0}; //the amount of boards there is
 struct Point
 {int x,y;} shapeWidth[MAX_SIZE], shapeHeight[MAX_SIZE]; //co ordinates of the shapes
 
+class Player 
+{
+public:
+    bool check();
+    void draw(RenderWindow& t_window, int t_colorNum);
+    void rotatePlayer();
+private:
+    bool rotate = false;
+};
+
 int shapes[7][4] = // matrix that controls the shapes
 {
     1,3,5,7, // I 
@@ -22,7 +32,7 @@ int shapes[7][4] = // matrix that controls the shapes
     2,3,4,5, // O
 };
 
-bool check() // collision detection
+bool Player::check() // collision detection
 {
     for (int i = 0; i < MAX_SIZE; i++)
     {
@@ -38,7 +48,7 @@ bool check() // collision detection
     return true;
 };
 
-void draw(RenderWindow &t_window, int t_colorNum)
+void Player::draw(RenderWindow &t_window, int t_colorNum)
 {
     Texture tetrisBlockTexture, backgroundTexture, boardFrameTexture;
     tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
@@ -74,11 +84,29 @@ void draw(RenderWindow &t_window, int t_colorNum)
     t_window.display();
 }
 
+void Player::rotatePlayer()
+{
+    if (rotate)
+    {
+        Point pointCoordinate = shapeWidth[1]; //center of rotation
+        for (int i = 0; i < MAX_SIZE; i++)
+        {
+            int x = shapeWidth[i].y - pointCoordinate.y;
+            int y = shapeWidth[i].x - pointCoordinate.x;
+            shapeWidth[i].x = pointCoordinate.x - x;
+            shapeWidth[i].y = pointCoordinate.y + y;
+        }
+        if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
+    }
+}
+
 int tetris()
 {
     srand(time(0));     
 
     RenderWindow window(VideoMode(320, 480), "The Game!");
+
+    Player player;
 
     /*Texture tetrisBlockTexture,backgroundTexture,boardFrameTexture;
     tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
@@ -106,7 +134,7 @@ int tetris()
             {
                 if (event.key.code == Keyboard::Up)
                 {
-                    rotate = true;
+                    player.rotatePlayer();
                 }
                 else if (event.key.code == Keyboard::Left)
                 {
@@ -119,14 +147,17 @@ int tetris()
             }
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::Down)) delay = 0.05; //makes the shape go faster
+        if (Keyboard::isKeyPressed(Keyboard::Down))
+        {
+            delay = 0.05; //makes the shape go faster
+        }
 
         //// <- Move -> ///
         for (int i = 0; i < MAX_SIZE; i++) 
         { 
             shapeHeight[i] = shapeWidth[i]; shapeWidth[i].x += dx; 
         }
-        if (!check())
+        if (!player.check())
         {
             for (int i = 0; i < MAX_SIZE; i++)
             {
@@ -135,25 +166,25 @@ int tetris()
         }
 
         //////Rotate//////
-        if (rotate)
-        {
-            Point pointCoordinate = shapeWidth[1]; //center of rotation
-            for (int i = 0; i < MAX_SIZE; i++)
-            {
-                int x = shapeWidth[i].y - pointCoordinate.y;
-                int y = shapeWidth[i].x - pointCoordinate.x;
-                shapeWidth[i].x = pointCoordinate.x - x;
-                shapeWidth[i].y = pointCoordinate.y + y;
-            }
-            if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
-        }
+        //if (rotate)
+        //{
+        //    Point pointCoordinate = shapeWidth[1]; //center of rotation
+        //    for (int i = 0; i < MAX_SIZE; i++)
+        //    {
+        //        int x = shapeWidth[i].y - pointCoordinate.y;
+        //        int y = shapeWidth[i].x - pointCoordinate.x;
+        //        shapeWidth[i].x = pointCoordinate.x - x;
+        //        shapeWidth[i].y = pointCoordinate.y + y;
+        //    }
+        //    if (!player.check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
+        //}
 
         ///////Tick//////
         if (timer > delay)
         {
             for (int i = 0; i < MAX_SIZE; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].y += 1; }
 
-            if (!check())
+            if (!player.check())
             {
                 for (int i = 0; i < MAX_SIZE; i++) field[shapeHeight[i].y][shapeHeight[i].x] = colorNum;
 
@@ -215,7 +246,7 @@ int tetris()
         //window.draw(frame);
         //window.display();
         //}
-        draw(window, colorNum);
+        player.draw(window, colorNum);
     }
 
     return 0;
