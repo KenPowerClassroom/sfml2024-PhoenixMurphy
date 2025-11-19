@@ -7,8 +7,9 @@ const int BOARD_WIDTH = 10; // the width of the board (row)
 
 int field[BOARD_HEIGHT][BOARD_WIDTH] = {0}; //the amount of boards there is
 
+const int MAX_SIZE = 4;
 struct Point
-{int x,y;} shapeWidth[4], shapeHeight[4]; //co ordinates of the shapes
+{int x,y;} shapeWidth[MAX_SIZE], shapeHeight[MAX_SIZE]; //co ordinates of the shapes
 
 int figures[7][4] = // matrix that controls the shapes
 {
@@ -23,7 +24,7 @@ int figures[7][4] = // matrix that controls the shapes
 
 bool check() // collision detection
 {
-   for (int i=0;i<4;i++)
+   for (int i=0;i<MAX_SIZE;i++)
       if (shapeWidth[i].x<0 || shapeWidth[i].x>=BOARD_WIDTH || shapeWidth[i].y>=BOARD_HEIGHT) return 0;
       else if (field[shapeWidth[i].y][shapeWidth[i].x]) return 0;
 
@@ -41,17 +42,17 @@ void draw(RenderWindow &t_window, int t_colorNum)
 
     t_window.clear(Color::White);
     t_window.draw(background);
-    for (int i = 0; i < BOARD_HEIGHT; i++) //when the block isn't at the bottom  
-        for (int j = 0; j < BOARD_WIDTH; j++) //when the block isn't at the side
+    for (int height = 0; height < BOARD_HEIGHT; height++) //when the block isn't at the bottom  
+        for (int width = 0; width < BOARD_WIDTH; width++) //when the block isn't at the side
         {
-            if (field[i][j] == 0) continue;
-            sprite.setTextureRect(IntRect(field[i][j] * 18, 0, 18, 18));
-            sprite.setPosition(j * 18, i * 18);
+            if (field[height][width] == 0) continue;
+            sprite.setTextureRect(IntRect(field[height][width] * 18, 0, 18, 18));
+            sprite.setPosition(width * 18, height * 18);
             sprite.move(28, 31); //offset
             t_window.draw(sprite);
         }
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < MAX_SIZE; i++)
     {
         sprite.setTextureRect(IntRect(t_colorNum * 18, 0, 18, 18));
         sprite.setPosition(shapeWidth[i].x * 18, shapeWidth[i].y * 18);
@@ -100,19 +101,19 @@ int tetris()
         if (Keyboard::isKeyPressed(Keyboard::Down)) delay = 0.05; //makes the shape go faster
 
         //// <- Move -> ///
-        for (int i = 0; i < 4; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].x += dx; }
-        if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
+        for (int i = 0; i < MAX_SIZE; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].x += dx; }
+        if (!check()) for (int i = 0; i < MAX_SIZE; i++) shapeWidth[i] = shapeHeight[i];
 
         //////Rotate//////
         if (rotate)
         {
-            Point p = shapeWidth[1]; //center of rotation
-            for (int i = 0; i < 4; i++)
+            Point pointCoordinate = shapeWidth[1]; //center of rotation
+            for (int i = 0; i < MAX_SIZE; i++)
             {
-                int x = shapeWidth[i].y - p.y;
-                int y = shapeWidth[i].x - p.x;
-                shapeWidth[i].x = p.x - x;
-                shapeWidth[i].y = p.y + y;
+                int x = shapeWidth[i].y - pointCoordinate.y;
+                int y = shapeWidth[i].x - pointCoordinate.x;
+                shapeWidth[i].x = pointCoordinate.x - x;
+                shapeWidth[i].y = pointCoordinate.y + y;
             }
             if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
         }
@@ -120,15 +121,15 @@ int tetris()
         ///////Tick//////
         if (timer > delay)
         {
-            for (int i = 0; i < 4; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].y += 1; }
+            for (int i = 0; i < MAX_SIZE; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].y += 1; }
 
             if (!check())
             {
-                for (int i = 0; i < 4; i++) field[shapeHeight[i].y][shapeHeight[i].x] = colorNum;
+                for (int i = 0; i < MAX_SIZE; i++) field[shapeHeight[i].y][shapeHeight[i].x] = colorNum;
 
                 colorNum = 1 + rand() % 7; // gets a random colour for the shape
                 int randomisedShape = rand() % 7; // randomises the different shapes that appear 
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < MAX_SIZE; i++)
                 {
                     shapeWidth[i].x = figures[randomisedShape][i] % 2;
                     shapeWidth[i].y = figures[randomisedShape][i] / 2;
@@ -139,16 +140,16 @@ int tetris()
         }
 
         ///////check lines//////////
-        int k = BOARD_HEIGHT - 1;
+        int line = BOARD_HEIGHT - 1;
         for (int i = BOARD_HEIGHT - 1; i > 0; i--)
         {
             int count = 0;
             for (int j = 0; j < BOARD_WIDTH; j++)
             {
                 if (field[i][j]) count++;
-                field[k][j] = field[i][j];
+                field[line][j] = field[i][j];
             }
-            if (count < BOARD_WIDTH) k--;
+            if (count < BOARD_WIDTH) line--;
         }
 
         dx = 0; rotate = 0; delay = 0.3;
