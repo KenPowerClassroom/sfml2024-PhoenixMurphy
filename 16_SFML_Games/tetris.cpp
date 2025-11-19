@@ -4,10 +4,10 @@ using namespace sf;
 
 const int BOARD_HEIGHT = 20; // the height of the board (colum)
 const int BOARD_WIDTH = 10; // the width of the board (row)
+const int MAX_SIZE = 4;
 
 int field[BOARD_HEIGHT][BOARD_WIDTH] = {0}; //the amount of boards there is
 
-const int MAX_SIZE = 4;
 struct Point
 {int x,y;} shapeWidth[MAX_SIZE], shapeHeight[MAX_SIZE]; //co ordinates of the shapes
 
@@ -24,11 +24,20 @@ int figures[7][4] = // matrix that controls the shapes
 
 bool check() // collision detection
 {
-   for (int i=0;i<MAX_SIZE;i++)
-      if (shapeWidth[i].x<0 || shapeWidth[i].x>=BOARD_WIDTH || shapeWidth[i].y>=BOARD_HEIGHT) return 0;
-      else if (field[shapeWidth[i].y][shapeWidth[i].x]) return 0;
+    for (int i = 0; i < MAX_SIZE; i++)
+    {
+        if (shapeWidth[i].x < 0 || shapeWidth[i].x >= BOARD_WIDTH || shapeWidth[i].y >= BOARD_HEIGHT)
+        {
+            return false;
+        }
+        if (field[shapeWidth[i].y][shapeWidth[i].x])
+        {
+            return false;
+        }
+    }
+  
 
-   return 1;
+   return true;
 };
 
 void draw(RenderWindow &t_window, int t_colorNum)
@@ -141,13 +150,13 @@ int tetris()
 
         ///////check lines//////////
         int line = BOARD_HEIGHT - 1;
-        for (int i = BOARD_HEIGHT - 1; i > 0; i--)
+        for (int height = BOARD_HEIGHT - 1; height > 0; height--)
         {
             int count = 0;
-            for (int j = 0; j < BOARD_WIDTH; j++)
+            for (int width = 0; width < BOARD_WIDTH; width++)
             {
-                if (field[i][j]) count++;
-                field[line][j] = field[i][j];
+                if (field[height][width]) count++;
+                field[line][width] = field[height][width];
             }
             if (count < BOARD_WIDTH) line--;
         }
