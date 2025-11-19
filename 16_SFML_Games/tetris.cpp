@@ -2,13 +2,13 @@
 #include <time.h>
 using namespace sf;
 
-const int M = 20; // the height of the board (colum)
-const int N = 10; // the width of the board (row)
+const int BOARD_HEIGHT = 20; // the height of the board (colum)
+const int BOARD_WIDTH = 10; // the width of the board (row)
 
-int field[M][N] = {0}; //the amount of boards there is
+int field[BOARD_HEIGHT][BOARD_WIDTH] = {0}; //the amount of boards there is
 
 struct Point
-{int x,y;} a[4], b[4]; //co ordinates of the shapes
+{int x,y;} shapeWidth[4], shapeHeight[4]; //co ordinates of the shapes
 
 int figures[7][4] = // matrix that controls the shapes
 {
@@ -24,8 +24,8 @@ int figures[7][4] = // matrix that controls the shapes
 bool check() // collision detection
 {
    for (int i=0;i<4;i++)
-      if (a[i].x<0 || a[i].x>=N || a[i].y>=M) return 0;
-      else if (field[a[i].y][a[i].x]) return 0;
+      if (shapeWidth[i].x<0 || shapeWidth[i].x>=BOARD_WIDTH || shapeWidth[i].y>=BOARD_HEIGHT) return 0;
+      else if (field[shapeWidth[i].y][shapeWidth[i].x]) return 0;
 
    return 1;
 };
@@ -37,12 +37,12 @@ int tetris()
 
     RenderWindow window(VideoMode(320, 480), "The Game!");
 
-    Texture t1,t2,t3;
-    t1.loadFromFile("images/tetris/tiles.png");
-    t2.loadFromFile("images/tetris/background.png");
-    t3.loadFromFile("images/tetris/frame.png");
+    Texture tetrisBlockTexture,backgroundTexture,boardFrameTexture;
+    tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
+    backgroundTexture.loadFromFile("images/tetris/background.png");
+    boardFrameTexture.loadFromFile("images/tetris/frame.png");
 
-    Sprite s(t1), background(t2), frame(t3);
+    Sprite sprite(tetrisBlockTexture), background(backgroundTexture), frame(boardFrameTexture);
 
     int dx=0; bool rotate=0; int colorNum=1;
     float timer=0,delay=0.3; 
@@ -55,53 +55,53 @@ int tetris()
         clock.restart();
         timer+=time;
 
-        Event e;
-        while (window.pollEvent(e))
+        Event event;
+        while (window.pollEvent(event))
         {
-            if (e.type == Event::Closed)
+            if (event.type == Event::Closed)
                 window.close();
 
-            if (e.type == Event::KeyPressed)
-              if (e.key.code==Keyboard::Up) rotate=true;
-              else if (e.key.code==Keyboard::Left) dx=-1; //moves it right
-              else if (e.key.code==Keyboard::Right) dx=1; //moves it left
+            if (event.type == Event::KeyPressed)
+              if (event.key.code==Keyboard::Up) rotate=true;
+              else if (event.key.code==Keyboard::Left) dx=-1; //moves it right
+              else if (event.key.code==Keyboard::Right) dx=1; //moves it left
         }
 
     if (Keyboard::isKeyPressed(Keyboard::Down)) delay=0.05; //makes the shape go faster
 
     //// <- Move -> ///
-    for (int i=0;i<4;i++)  { b[i]=a[i]; a[i].x+=dx; }
-    if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
+    for (int i=0;i<4;i++)  { shapeHeight[i]=shapeWidth[i]; shapeWidth[i].x+=dx; }
+    if (!check()) for (int i=0;i<4;i++) shapeWidth[i]=shapeHeight[i];
 
     //////Rotate//////
     if (rotate)
       {
-        Point p = a[1]; //center of rotation
+        Point p = shapeWidth[1]; //center of rotation
         for (int i=0;i<4;i++)
           {
-            int x = a[i].y-p.y;
-            int y = a[i].x-p.x;
-            a[i].x = p.x - x;
-            a[i].y = p.y + y;
+            int x = shapeWidth[i].y-p.y;
+            int y = shapeWidth[i].x-p.x;
+            shapeWidth[i].x = p.x - x;
+            shapeWidth[i].y = p.y + y;
            }
-           if (!check()) for (int i=0;i<4;i++) a[i]=b[i]; 
+           if (!check()) for (int i=0;i<4;i++) shapeWidth[i]=shapeHeight[i]; 
       }
 
     ///////Tick//////
     if (timer>delay)
       {
-        for (int i=0;i<4;i++) { b[i]=a[i]; a[i].y+=1; }
+        for (int i=0;i<4;i++) { shapeHeight[i]=shapeWidth[i]; shapeWidth[i].y+=1; }
 
         if (!check())
         {
-         for (int i=0;i<4;i++) field[b[i].y][b[i].x]=colorNum;
+         for (int i=0;i<4;i++) field[shapeHeight[i].y][shapeHeight[i].x]=colorNum;
 
          colorNum=1+rand()%7; // gets a random colour for the shape
-         int n=rand()%7; // randomises the different shapes that appear 
+         int randomisedShape=rand()%7; // randomises the different shapes that appear 
          for (int i=0;i<4;i++)
            {
-            a[i].x = figures[n][i] % 2;
-            a[i].y = figures[n][i] / 2;
+            shapeWidth[i].x = figures[randomisedShape][i] % 2;
+            shapeWidth[i].y = figures[randomisedShape][i] / 2;
            }
         }
 
@@ -109,16 +109,16 @@ int tetris()
       }
 
     ///////check lines//////////
-    int k=M-1;
-    for (int i=M-1;i>0;i--)
+    int k=BOARD_HEIGHT-1;
+    for (int i=BOARD_HEIGHT-1;i>0;i--)
     {
         int count=0;
-        for (int j=0;j<N;j++)
+        for (int j=0;j<BOARD_WIDTH;j++)
         {
             if (field[i][j]) count++;
             field[k][j]=field[i][j];
         }
-        if (count<N) k--;
+        if (count<BOARD_WIDTH) k--;
     }
 
     dx=0; rotate=0; delay=0.3;
@@ -127,22 +127,22 @@ int tetris()
     window.clear(Color::White);    
     window.draw(background);
           
-    for (int i=0;i<M;i++) //when the block isn't at the bottom  
-     for (int j=0;j<N;j++) //when the block isn't at the side
+    for (int i=0;i<BOARD_HEIGHT;i++) //when the block isn't at the bottom  
+     for (int j=0;j<BOARD_WIDTH;j++) //when the block isn't at the side
        {
          if (field[i][j]==0) continue;
-         s.setTextureRect(IntRect(field[i][j]*18,0,18,18));
-         s.setPosition(j*18,i*18); 
-         s.move(28,31); //offset
-         window.draw(s);
+         sprite.setTextureRect(IntRect(field[i][j]*18,0,18,18));
+         sprite.setPosition(j*18,i*18); 
+         sprite.move(28,31); //offset
+         window.draw(sprite);
        }
 
     for (int i=0;i<4;i++)
       {
-        s.setTextureRect(IntRect(colorNum*18,0,18,18));
-        s.setPosition(a[i].x*18,a[i].y*18);
-        s.move(28,31); //offset
-        window.draw(s);
+        sprite.setTextureRect(IntRect(colorNum*18,0,18,18));
+        sprite.setPosition(shapeWidth[i].x*18,shapeWidth[i].y*18);
+        sprite.move(28,31); //offset
+        window.draw(sprite);
       }
 
     window.draw(frame);
