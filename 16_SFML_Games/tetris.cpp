@@ -30,6 +30,38 @@ bool check() // collision detection
    return 1;
 };
 
+void draw(RenderWindow &t_window, int t_colorNum)
+{
+    Texture tetrisBlockTexture, backgroundTexture, boardFrameTexture;
+    tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
+    backgroundTexture.loadFromFile("images/tetris/background.png");
+    boardFrameTexture.loadFromFile("images/tetris/frame.png");
+
+    Sprite sprite(tetrisBlockTexture), background(backgroundTexture), frame(boardFrameTexture);
+
+    t_window.clear(Color::White);
+    t_window.draw(background);
+    for (int i = 0; i < BOARD_HEIGHT; i++) //when the block isn't at the bottom  
+        for (int j = 0; j < BOARD_WIDTH; j++) //when the block isn't at the side
+        {
+            if (field[i][j] == 0) continue;
+            sprite.setTextureRect(IntRect(field[i][j] * 18, 0, 18, 18));
+            sprite.setPosition(j * 18, i * 18);
+            sprite.move(28, 31); //offset
+            t_window.draw(sprite);
+        }
+
+    for (int i = 0; i < 4; i++)
+    {
+        sprite.setTextureRect(IntRect(t_colorNum * 18, 0, 18, 18));
+        sprite.setPosition(shapeWidth[i].x * 18, shapeWidth[i].y * 18);
+        sprite.move(28, 31); //offset
+        t_window.draw(sprite);
+    }
+
+    t_window.draw(frame);
+    t_window.display();
+}
 
 int tetris()
 {
@@ -37,12 +69,10 @@ int tetris()
 
     RenderWindow window(VideoMode(320, 480), "The Game!");
 
-    Texture tetrisBlockTexture,backgroundTexture,boardFrameTexture;
+    /*Texture tetrisBlockTexture,backgroundTexture,boardFrameTexture;
     tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
     backgroundTexture.loadFromFile("images/tetris/background.png");
-    boardFrameTexture.loadFromFile("images/tetris/frame.png");
-
-    Sprite sprite(tetrisBlockTexture), background(backgroundTexture), frame(boardFrameTexture);
+    boardFrameTexture.loadFromFile("images/tetris/frame.png");*/
 
     int dx=0; bool rotate=0; int colorNum=1;
     float timer=0,delay=0.3; 
@@ -53,7 +83,7 @@ int tetris()
     {
         float time = clock.getElapsedTime().asSeconds();
         clock.restart();
-        timer+=time;
+        timer += time;
 
         Event event;
         while (window.pollEvent(event))
@@ -62,92 +92,96 @@ int tetris()
                 window.close();
 
             if (event.type == Event::KeyPressed)
-              if (event.key.code==Keyboard::Up) rotate=true;
-              else if (event.key.code==Keyboard::Left) dx=-1; //moves it right
-              else if (event.key.code==Keyboard::Right) dx=1; //moves it left
+                if (event.key.code == Keyboard::Up) rotate = true;
+                else if (event.key.code == Keyboard::Left) dx = -1; //moves it right
+                else if (event.key.code == Keyboard::Right) dx = 1; //moves it left
         }
 
-    if (Keyboard::isKeyPressed(Keyboard::Down)) delay=0.05; //makes the shape go faster
+        if (Keyboard::isKeyPressed(Keyboard::Down)) delay = 0.05; //makes the shape go faster
 
-    //// <- Move -> ///
-    for (int i=0;i<4;i++)  { shapeHeight[i]=shapeWidth[i]; shapeWidth[i].x+=dx; }
-    if (!check()) for (int i=0;i<4;i++) shapeWidth[i]=shapeHeight[i];
+        //// <- Move -> ///
+        for (int i = 0; i < 4; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].x += dx; }
+        if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
 
-    //////Rotate//////
-    if (rotate)
-      {
-        Point p = shapeWidth[1]; //center of rotation
-        for (int i=0;i<4;i++)
-          {
-            int x = shapeWidth[i].y-p.y;
-            int y = shapeWidth[i].x-p.x;
-            shapeWidth[i].x = p.x - x;
-            shapeWidth[i].y = p.y + y;
-           }
-           if (!check()) for (int i=0;i<4;i++) shapeWidth[i]=shapeHeight[i]; 
-      }
-
-    ///////Tick//////
-    if (timer>delay)
-      {
-        for (int i=0;i<4;i++) { shapeHeight[i]=shapeWidth[i]; shapeWidth[i].y+=1; }
-
-        if (!check())
+        //////Rotate//////
+        if (rotate)
         {
-         for (int i=0;i<4;i++) field[shapeHeight[i].y][shapeHeight[i].x]=colorNum;
-
-         colorNum=1+rand()%7; // gets a random colour for the shape
-         int randomisedShape=rand()%7; // randomises the different shapes that appear 
-         for (int i=0;i<4;i++)
-           {
-            shapeWidth[i].x = figures[randomisedShape][i] % 2;
-            shapeWidth[i].y = figures[randomisedShape][i] / 2;
-           }
+            Point p = shapeWidth[1]; //center of rotation
+            for (int i = 0; i < 4; i++)
+            {
+                int x = shapeWidth[i].y - p.y;
+                int y = shapeWidth[i].x - p.x;
+                shapeWidth[i].x = p.x - x;
+                shapeWidth[i].y = p.y + y;
+            }
+            if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
         }
 
-         timer=0;
-      }
-
-    ///////check lines//////////
-    int k=BOARD_HEIGHT-1;
-    for (int i=BOARD_HEIGHT-1;i>0;i--)
-    {
-        int count=0;
-        for (int j=0;j<BOARD_WIDTH;j++)
+        ///////Tick//////
+        if (timer > delay)
         {
-            if (field[i][j]) count++;
-            field[k][j]=field[i][j];
+            for (int i = 0; i < 4; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].y += 1; }
+
+            if (!check())
+            {
+                for (int i = 0; i < 4; i++) field[shapeHeight[i].y][shapeHeight[i].x] = colorNum;
+
+                colorNum = 1 + rand() % 7; // gets a random colour for the shape
+                int randomisedShape = rand() % 7; // randomises the different shapes that appear 
+                for (int i = 0; i < 4; i++)
+                {
+                    shapeWidth[i].x = figures[randomisedShape][i] % 2;
+                    shapeWidth[i].y = figures[randomisedShape][i] / 2;
+                }
+            }
+
+            timer = 0;
         }
-        if (count<BOARD_WIDTH) k--;
-    }
 
-    dx=0; rotate=0; delay=0.3;
+        ///////check lines//////////
+        int k = BOARD_HEIGHT - 1;
+        for (int i = BOARD_HEIGHT - 1; i > 0; i--)
+        {
+            int count = 0;
+            for (int j = 0; j < BOARD_WIDTH; j++)
+            {
+                if (field[i][j]) count++;
+                field[k][j] = field[i][j];
+            }
+            if (count < BOARD_WIDTH) k--;
+        }
 
-    /////////draw//////////
-    window.clear(Color::White);    
-    window.draw(background);
-          
-    for (int i=0;i<BOARD_HEIGHT;i++) //when the block isn't at the bottom  
-     for (int j=0;j<BOARD_WIDTH;j++) //when the block isn't at the side
-       {
-         if (field[i][j]==0) continue;
-         sprite.setTextureRect(IntRect(field[i][j]*18,0,18,18));
-         sprite.setPosition(j*18,i*18); 
-         sprite.move(28,31); //offset
-         window.draw(sprite);
-       }
+        dx = 0; rotate = 0; delay = 0.3;
 
-    for (int i=0;i<4;i++)
-      {
-        sprite.setTextureRect(IntRect(colorNum*18,0,18,18));
-        sprite.setPosition(shapeWidth[i].x*18,shapeWidth[i].y*18);
-        sprite.move(28,31); //offset
-        window.draw(sprite);
-      }
+        /////////draw//////////
+        //window.clear(Color::White);    
+        //window.draw(background);
+        //      
+        //for (int i=0;i<BOARD_HEIGHT;i++) //when the block isn't at the bottom  
+        // for (int j=0;j<BOARD_WIDTH;j++) //when the block isn't at the side
+        //   {
+        //     if (field[i][j]==0) continue;
+        //     sprite.setTextureRect(IntRect(field[i][j]*18,0,18,18));
+        //     sprite.setPosition(j*18,i*18); 
+        //     sprite.move(28,31); //offset
+        //     window.draw(sprite);
+        //   }
 
-    window.draw(frame);
-    window.display();
+        //for (int i=0;i<4;i++)
+        //  {
+        //    sprite.setTextureRect(IntRect(colorNum*18,0,18,18));
+        //    sprite.setPosition(shapeWidth[i].x*18,shapeWidth[i].y*18);
+        //    sprite.move(28,31); //offset
+        //    window.draw(sprite);
+        //  }
+
+        //window.draw(frame);
+        //window.display();
+        //}
+        draw(window, colorNum);
     }
 
     return 0;
 }
+
+    
