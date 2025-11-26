@@ -1,25 +1,11 @@
  #include <SFML/Graphics.hpp>
 #include <time.h>
+#include "TetrisPlayer.h"
 using namespace sf;
 
-const int BOARD_HEIGHT = 20; // the height of the board (colum)
-const int BOARD_WIDTH = 10; // the width of the board (row)
-const int MAX_SIZE = 4;
 
-int field[BOARD_HEIGHT][BOARD_WIDTH] = {0}; //the amount of boards there is
-
-struct Point
-{int x,y;} shapeWidth[MAX_SIZE], shapeHeight[MAX_SIZE]; //co ordinates of the shapes
-
-class Player 
-{
-public:
-    bool check();
-    void draw(RenderWindow& t_window, int t_colorNum);
-    void rotatePlayer();
-private:
-    bool rotate = false;
-};
+//struct Point
+//{int x,y;} shapeWidth[MAX_SIZE], shapeHeight[MAX_SIZE]; //co ordinates of the shapes
 
 int shapes[7][4] = // matrix that controls the shapes
 {
@@ -32,23 +18,7 @@ int shapes[7][4] = // matrix that controls the shapes
     2,3,4,5, // O
 };
 
-bool Player::check() // collision detection
-{
-    for (int i = 0; i < MAX_SIZE; i++)
-    {
-        if (shapeWidth[i].x < 0 || shapeWidth[i].x >= BOARD_WIDTH || shapeWidth[i].y >= BOARD_HEIGHT)
-        {
-            return false;
-        }
-        if (field[shapeWidth[i].y][shapeWidth[i].x])
-        {
-            return false;
-        }
-    }
-    return true;
-};
-
-void Player::draw(RenderWindow &t_window, int t_colorNum)
+void draw(RenderWindow &t_window, int t_colorNum)
 {
     Texture tetrisBlockTexture, backgroundTexture, boardFrameTexture;
     tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
@@ -75,7 +45,7 @@ void Player::draw(RenderWindow &t_window, int t_colorNum)
     for (int i = 0; i < MAX_SIZE; i++)
     {
         sprite.setTextureRect(IntRect(t_colorNum * 18, 0, 18, 18));
-        sprite.setPosition(shapeWidth[i].x * 18, shapeWidth[i].y * 18);
+        sprite.setPosition(shape[i].x * 18, shape[i].y * 18);
         sprite.move(28, 31); //offset
         t_window.draw(sprite);
     }
@@ -84,29 +54,13 @@ void Player::draw(RenderWindow &t_window, int t_colorNum)
     t_window.display();
 }
 
-void Player::rotatePlayer()
-{
-    if (rotate)
-    {
-        Point pointCoordinate = shapeWidth[1]; //center of rotation
-        for (int i = 0; i < MAX_SIZE; i++)
-        {
-            int x = shapeWidth[i].y - pointCoordinate.y;
-            int y = shapeWidth[i].x - pointCoordinate.x;
-            shapeWidth[i].x = pointCoordinate.x - x;
-            shapeWidth[i].y = pointCoordinate.y + y;
-        }
-        if (!check()) for (int i = 0; i < 4; i++) shapeWidth[i] = shapeHeight[i];
-    }
-}
-
 int tetris()
 {
     srand(time(0));     
 
     RenderWindow window(VideoMode(320, 480), "The Game!");
 
-    Player player;
+    TetrisPlayer player;
 
     /*Texture tetrisBlockTexture,backgroundTexture,boardFrameTexture;
     tetrisBlockTexture.loadFromFile("images/tetris/tiles.png");
@@ -155,13 +109,13 @@ int tetris()
         //// <- Move -> ///
         for (int i = 0; i < MAX_SIZE; i++) 
         { 
-            shapeHeight[i] = shapeWidth[i]; shapeWidth[i].x += dx; 
+            shapeHeight[i] = shape[i]; shape[i].x += dx; 
         }
         if (!player.check())
         {
             for (int i = 0; i < MAX_SIZE; i++)
             {
-                shapeWidth[i] = shapeHeight[i];
+                shape[i] = shapeHeight[i];
             }
         }
 
@@ -182,7 +136,7 @@ int tetris()
         ///////Tick//////
         if (timer > delay)
         {
-            for (int i = 0; i < MAX_SIZE; i++) { shapeHeight[i] = shapeWidth[i]; shapeWidth[i].y += 1; }
+            for (int i = 0; i < MAX_SIZE; i++) { shapeHeight[i] = shape[i]; shape[i].y += 1; }
 
             if (!player.check())
             {
@@ -192,8 +146,8 @@ int tetris()
                 int randomisedShape = rand() % 7; // randomises the different shapes that appear 
                 for (int i = 0; i < MAX_SIZE; i++)
                 {
-                    shapeWidth[i].x = shapes[randomisedShape][i] % 2;
-                    shapeWidth[i].y = shapes[randomisedShape][i] / 2;
+                    shape[i].x = shapes[randomisedShape][i] % 2;
+                    shape[i].y = shapes[randomisedShape][i] / 2;
                 }
             }
 
@@ -246,7 +200,7 @@ int tetris()
         //window.draw(frame);
         //window.display();
         //}
-        player.draw(window, colorNum);
+        draw(window, colorNum);
     }
 
     return 0;

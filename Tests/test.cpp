@@ -165,10 +165,10 @@ TEST(Player, ConstrainedDiagonallyFast) {
 	p.dx = 5;
 	p.dy = 6;
 
-	
+
 	for (int i = 0; i < 100; i++)
 		p.move();
 
-	EXPECT_EQ(HEIGHT-1, p.y);
-	EXPECT_EQ(WIDTH-1, p.x);
+	EXPECT_EQ(HEIGHT - 1, p.y);
+	EXPECT_EQ(WIDTH - 1, p.x);
 }
